@@ -22,7 +22,7 @@ A robust Bash script designed to automate the maintenance and update process for
 ## Prerequisites
 
 - A Debian or Ubuntu-based Linux distribution (uses `apt`).
-- Root or `sudo` privileges are required to run the script.
+- A regular user account with `sudo` privileges is required to run the script.
 
 ## Usage
 
@@ -36,10 +36,11 @@ A robust Bash script designed to automate the maintenance and update process for
     ```
 
 3.  **Run the script**:
-    Execute the script with root privileges:
+    Execute the script as a regular user with `sudo` privileges:
     ```bash
-    sudo ./update.sh
+    ./update.sh
     ```
+    The script runs each system command through `sudo`, so do not launch it as root.
 
 ## What it does
 

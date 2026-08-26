@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -Eeuo pipefail
+
 # Colors
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -11,20 +13,23 @@ if [ "$EUID" -eq 0 ]; then
     exit 1
 fi
 
-# Function to run commands and check for errors
+# Function to run commands and stop on errors
 run_command() {
     local message="$1"
     shift # Shift arguments so $1 becomes the command and the rest are args
     
     echo -e "${GREEN}$message...${NC}"
     if ! "$@"; then
-        echo -e "${RED}Error: '$message' failed.${NC}"
+        echo -e "${RED}Error: '$message' failed.${NC}" >&2
+        return 1
     fi
     echo # for a newline
 }
 
-run_command "Updating package list" sudo apt update -y
-run_command "Upgrading all installed packages" sudo apt full-upgrade -y
+run_command "Updating package list" sudo apt-get update
+run_command "Reconfiguring any packages that are not fully installed" sudo dpkg --configure -a
+run_command "Fixing any broken dependencies" sudo apt-get install -f -y
+run_command "Upgrading all installed packages" sudo apt-get full-upgrade -y
 
 # Update Flatpak packages if flatpak is installed
 if command -v flatpak &> /dev/null; then
@@ -40,10 +45,8 @@ else
     echo -e "${GREEN}Snap not found, skipping.${NC}\n"
 fi
 
-run_command "Cleaning up system" sudo apt autoremove --purge -y
-run_command "Cleaning package cache" sudo apt autoclean -y
-run_command "Fixing any broken dependencies" sudo apt install -f -y
-run_command "Reconfiguring any packages that are not fully installed" sudo dpkg --configure -a
+run_command "Cleaning up system" sudo apt-get autoremove --purge -y
+run_command "Cleaning package cache" sudo apt-get autoclean
 
 # Update Pi-hole if pihole is installed
 if command -v pihole &> /dev/null; then
